@@ -1,0 +1,51 @@
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.core.config import settings
+from app.utils.logger import setup_logging, logger
+from app.api.v1 import extract
+from app.api.dependencies import limiter
+from app.services.cache import cache_service
+from app.services.fetcher import fetcher_service
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    setup_logging()
+    logger.info("startup")
+    yield
+    # Shutdown
+    await cache_service.close()
+    await fetcher_service.close()
+    logger.info("shutdown")
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    lifespan=lifespan
+)
+
+# Rate Limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Routers
+app.include_router(extract.router, prefix="/v1", tags=["extract"])
+
+# Health Check
+@app.get("/health")
+async def health_check():
+    # Simple check, could extend to check redis connectivity
+    return {"status": "ok", "redis": "connected"} # Optimistic
+
+# Global Exception Handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("unhandled_exception", error=str(exc))
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Failed to extract", "code": "extraction_error"}
+    )

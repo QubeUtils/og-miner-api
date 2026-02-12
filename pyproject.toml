@@ -1,0 +1,38 @@
+[project]
+name = "link_preview_api"
+version = "0.1.0"
+description = "High-performance API to extract metadata from URLs"
+authors = [{name = "Antigravity", email = "antigravity@example.com"}]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "beautifulsoup4",
+    "lxml",
+    "pydantic",
+    "pydantic-settings",
+    "redis",
+    "structlog",
+    "orjson",
+    "validators",
+    "slowapi",
+    "dnspython",
+    "email-validator"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "S", "A", "C4", "SIM", "TRY"]
+ignore = ["B905"] # ZIP strict=True (optional)
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+asyncio_mode = "auto"
