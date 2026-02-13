@@ -19,4 +19,10 @@ class CacheService:
     async def close(self):
         await self.redis.close()
 
+    async def ping(self) -> bool:
+        try:
+            return await self.redis.ping()
+        except:
+            return False
+
 cache_service = CacheService()
