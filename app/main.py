@@ -33,6 +33,10 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Routers
+@app.get("/")
+async def root():
+    return {"message": "Welcome to OG Miner API", "docs": "/docs"}
+
 app.include_router(extract.router, prefix="/v1", tags=["extract"])
 
 # Health Check

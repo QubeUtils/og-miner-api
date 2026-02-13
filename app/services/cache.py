@@ -5,7 +5,8 @@ from app.core.config import settings
 
 class CacheService:
     def __init__(self):
-        self.redis = redis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
+        # ssl_cert_reqs=None is often required for Heroku Redis
+        self.redis = redis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True, ssl_cert_reqs=None)
 
     async def get(self, key: str) -> Optional[dict]:
         data = await self.redis.get(key)
