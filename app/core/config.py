@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, AliasChoices
 
 
 class Settings(BaseSettings):
@@ -7,7 +8,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = Field("redis://localhost:6379/0", validation_alias=AliasChoices("REDIS_URL", "REDISCLOUD_URL"))
     
     # Security
     SECRET_KEY: str = "change_this_to_a_secure_random_string"
