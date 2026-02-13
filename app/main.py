@@ -38,8 +38,11 @@ app.include_router(extract.router, prefix="/v1", tags=["extract"])
 # Health Check
 @app.get("/health")
 async def health_check():
-    # Simple check, could extend to check redis connectivity
-    return {"status": "ok", "redis": "connected"} # Optimistic
+    redis_status = await cache_service.ping()
+    return {
+        "status": "ok" if redis_status else "degraded",
+        "redis": "connected" if redis_status else "disconnected"
+    }
 
 # Global Exception Handler
 @app.exception_handler(Exception)
