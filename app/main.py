@@ -11,12 +11,15 @@ from app.api.dependencies import limiter
 from app.services.cache import cache_service
 from app.services.fetcher import fetcher_service
 
+from app.services.proxy_manager import proxy_manager
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     try:
         setup_logging()
         logger.info("startup")
+        await proxy_manager.initialize()
         
         if settings.X_RAPIDAPI_PROXY_SECRET == "MISSING_SECRET":
             logger.error("startup_error", message="X_RAPIDAPI_PROXY_SECRET is not set! Authentication will fail or be insecure.")
