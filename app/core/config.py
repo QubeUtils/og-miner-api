@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change_this_to_a_secure_random_string"
     X_RAPIDAPI_PROXY_SECRET: str = "MISSING_SECRET"
     
+    # Proxy
+    PROXY_URL: str | None = None
+    
     # Logging
     LOG_LEVEL: str = "INFO"
     

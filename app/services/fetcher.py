@@ -6,11 +6,19 @@ from app.utils.logger import logger
 class FetcherService:
     def __init__(self):
         self.ua = UserAgent()
+        
+        # Configure Proxies
+        proxies = None
+        if hasattr(settings, "PROXY_URL") and settings.PROXY_URL:
+            proxies = settings.PROXY_URL
+            logger.info("fetcher_proxy_enabled")
+
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(10.0, connect=5.0),
             limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
             follow_redirects=True,
-            verify=False # Optional: might help with some SSL errors, but insecure. keeping default True is better but for a scraper loose is often needed. Let's stick to default verification for now or strict=False.
+            verify=False,
+            proxies=proxies
         )
 
     async def fetch(self, url: str) -> str:

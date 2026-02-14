@@ -1,7 +1,18 @@
 from playwright.async_api import async_playwright
 from app.utils.logger import logger
 
+from app.core.config import settings
+
 class HeadlessFetcher:
+    def _get_launch_options(self):
+        options = {
+            "headless": True,
+            "args": ['--no-sandbox', '--disable-setuid-sandbox']
+        }
+        if settings.PROXY_URL:
+            options["proxy"] = {"server": settings.PROXY_URL}
+        return options
+
     async def fetch_and_render(self, url: str) -> str | None:
         """
         Launches a headless browser, navigates to the URL, checks for specific
@@ -11,12 +22,7 @@ class HeadlessFetcher:
         """
         try:
             async with async_playwright() as p:
-                # Launch configs: disable sandboxing for docker, etc.
-                # In a real heavy env, we might want to connect to a remote browser instance.
-                browser = await p.chromium.launch(
-                    headless=True,
-                    args=['--no-sandbox', '--disable-setuid-sandbox'] # Docker requires this in some environments
-                )
+                browser = await p.chromium.launch(**self._get_launch_options())
                 context = await browser.new_context(
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 )
@@ -53,10 +59,7 @@ class HeadlessFetcher:
     async def take_screenshot(self, url: str, full_page: bool = False, width: int = 1280, height: int = 720, delay: int = 0, dark_mode: bool = False) -> bytes | None:
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(
-                    headless=True,
-                    args=['--no-sandbox', '--disable-setuid-sandbox']
-                )
+                browser = await p.chromium.launch(**self._get_launch_options())
                 
                 color_scheme = "dark" if dark_mode else "light"
                 context = await browser.new_context(
