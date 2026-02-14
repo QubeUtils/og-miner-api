@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.utils.logger import setup_logging, logger
-from app.api.v1 import extract, screenshot, batch
+from app.api.v1 import extract, screenshot, batch, image
 from app.api.dependencies import limiter
 from app.services.cache import cache_service
 from app.services.fetcher import fetcher_service
@@ -58,6 +58,7 @@ async def root():
 app.include_router(extract.router, prefix="/v1", tags=["extract"])
 app.include_router(screenshot.router, prefix="/v1", tags=["screenshot"])
 app.include_router(batch.router, prefix="/v1", tags=["batch"])
+app.include_router(image.router, prefix="/v1", tags=["image"])
 
 # Health Check
 @app.get("/health")
