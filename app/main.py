@@ -14,13 +14,22 @@ from app.services.fetcher import fetcher_service
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    setup_logging()
-    logger.info("startup")
-    
-    if settings.X_RAPIDAPI_PROXY_SECRET == "MISSING_SECRET":
-        logger.error("startup_error", "X_RAPIDAPI_PROXY_SECRET is not set! Authentication will fail or be insecure.")
+    try:
+        setup_logging()
+        logger.info("startup")
         
-    yield
+        if settings.X_RAPIDAPI_PROXY_SECRET == "MISSING_SECRET":
+            logger.error("startup_error", message="X_RAPIDAPI_PROXY_SECRET is not set! Authentication will fail or be insecure.")
+            
+        yield
+    except Exception as e:
+        # Fallback logging if structlog fails or other startup error
+        import sys
+        print(f"CRITICAL STARTUP ERROR: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        raise e
+        
     # Shutdown
     await cache_service.close()
     await fetcher_service.close()
