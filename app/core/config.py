@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "og-miner"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+    DESCRIPTION: ""
     
     # Redis
     REDIS_URL: str = Field("redis://localhost:6379/0", validation_alias=AliasChoices("REDIS_URL", "REDISCLOUD_URL"))
