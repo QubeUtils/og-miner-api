@@ -7,7 +7,11 @@ from app.core.config import settings
 
 limiter = Limiter(key_func=get_remote_address)
 
-api_key_header = APIKeyHeader(name="X-RapidAPI-Proxy-Secret", auto_error=False)
+api_key_header = APIKeyHeader(
+    name="X-RapidAPI-Proxy-Secret", 
+    auto_error=False, 
+    description="Secret key to verify requests coming from RapidAPI (or direct access if you have the secret)."
+)
 
 async def verify_secret_header(api_key: str = Security(api_key_header)):
     if api_key != settings.X_RAPIDAPI_PROXY_SECRET:
