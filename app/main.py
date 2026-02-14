@@ -6,7 +6,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.utils.logger import setup_logging, logger
-from app.api.v1 import extract
+from app.api.v1 import extract, screenshot
 from app.api.dependencies import limiter
 from app.services.cache import cache_service
 from app.services.fetcher import fetcher_service
@@ -53,6 +53,7 @@ async def root():
     return {"message": "Welcome to OG Miner API", "docs": "/docs"}
 
 app.include_router(extract.router, prefix="/v1", tags=["extract"])
+app.include_router(screenshot.router, prefix="/v1", tags=["screenshot"])
 
 # Health Check
 @app.get("/health")

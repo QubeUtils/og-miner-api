@@ -43,7 +43,50 @@ class HeadlessFetcher:
                     return content
                     
                 except Exception as e:
-                    logger.error("headless_fetch_failed", url=url, error=str(e))
+                    await browser.close()
+                    return None
+                    
+        except Exception as e:
+            logger.error("headless_service_init_failed", url=url, error=str(e))
+            return None
+
+    async def take_screenshot(self, url: str, full_page: bool = False, width: int = 1280, height: int = 720, delay: int = 0, dark_mode: bool = False) -> bytes | None:
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=['--no-sandbox', '--disable-setuid-sandbox']
+                )
+                
+                color_scheme = "dark" if dark_mode else "light"
+                context = await browser.new_context(
+                    viewport={"width": width, "height": height},
+                    color_scheme=color_scheme,
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                
+                page = await context.new_page()
+                
+                try:
+                    # Allow images for screenshots!
+                    await page.route("**/*", lambda route: route.continue_())
+                    
+                    await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+                    
+                    if delay > 0:
+                        await page.wait_for_timeout(delay)
+                    else:
+                        try:
+                            await page.wait_for_load_state("networkidle", timeout=3000)
+                        except:
+                            pass
+                    
+                    screenshot = await page.screenshot(full_page=full_page, type="png")
+                    await browser.close()
+                    return screenshot
+                    
+                except Exception as e:
+                    logger.error("screenshot_failed", url=url, error=str(e))
                     await browser.close()
                     return None
                     
