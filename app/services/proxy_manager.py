@@ -47,9 +47,13 @@ class ProxyManager:
         else:
             logger.warning("proxy_refresh_no_proxies_found")
 
-    async def get_proxy(self) -> Optional[str]:
+    async def get_proxy(self, country: str = None) -> Optional[str]:
         """Returns a proxy to use. Prioritizes static proxy."""
         if self.static_proxy:
+            # TODO: If using a paid provider (BrightData/Smartproxy), inject 'country' here.
+            # Example: http://user-country-{country}:pass@host:port
+            if country:
+                logger.info("proxy_geo_targeting_requested", country=country, provider="static")
             return self.static_proxy
 
         async with self._lock:
@@ -57,6 +61,11 @@ class ProxyManager:
                 return None
             
             # Simple random selection for now, avoiding known bad ones if possible
+            # Free proxies generally don't support deterministic geo-targeting via auth
+            if country:
+                 logger.debug("proxy_geo_targeting_ignored_free_tier", country=country)
+            
+            available = [p for p in self.proxies if p not in self.bad_proxies]
             # If all are bad, we might need to recycle or refresh
             available = [p for p in self.proxies if p not in self.bad_proxies]
             

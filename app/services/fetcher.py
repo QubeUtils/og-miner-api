@@ -14,7 +14,7 @@ class FetcherService:
             verify=False
         )
 
-    async def fetch(self, url: str) -> str:
+    async def fetch(self, url: str, cookies: dict | None = None, country: str | None = None) -> str:
         # Validate SSRF
         validate_url(url)
         
@@ -24,15 +24,15 @@ class FetcherService:
         last_error = None
         
         for attempt in range(retries):
-            proxy = await proxy_manager.get_proxy()
+            proxy = await proxy_manager.get_proxy(country=country)
             
             # Create a client for this request (needed to set specific proxy)
             # If no proxy, use default_client (but we can't reuse default_client easily if we want different proxies per req)
             # For simplicity in this rotation model, we create a new client or use a helper
             
             try:
-                if proxy:
-                    async with httpx.AsyncClient(proxies=proxy, verify=False, timeout=10.0, follow_redirects=True) as client:
+                if proxy or cookies: # Always create new client if cookies are present to avoid polluting default
+                    async with httpx.AsyncClient(proxies=proxy, verify=False, timeout=10.0, follow_redirects=True, cookies=cookies) as client:
                         return await self._perform_fetch(client, url, headers)
                 else:
                     return await self._perform_fetch(self.default_client, url, headers)

@@ -13,19 +13,25 @@ class HeadlessFetcher:
             options["proxy"] = {"server": proxy_url}
         return options
 
-    async def fetch_and_render(self, url: str) -> str | None:
+    async def fetch_and_render(self, url: str, cookies: list[dict] | None = None, country: str | None = None) -> str | None:
         """
         Launches a headless browser... with retries for proxies.
+        Cookies format for Playwright: [{'name': 'foo', 'value': 'bar', 'url': '...'}]
         """
         retries = 3
         for attempt in range(retries):
-            proxy = await proxy_manager.get_proxy()
+            proxy = await proxy_manager.get_proxy(country=country)
             try:
                 async with async_playwright() as p:
                     browser = await p.chromium.launch(**self._get_launch_options(proxy))
                     context = await browser.new_context(
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                     )
+                    
+                    if cookies:
+                         # Ensure cookies have a domain/url if not provided, or strict check
+                         # Playwright needs 'domain' or 'url' in cookie dict usually
+                         await context.add_cookies(cookies)
                     
                     page = await context.new_page()
                     
@@ -53,10 +59,10 @@ class HeadlessFetcher:
         
         return None
 
-    async def take_screenshot(self, url: str, full_page: bool = False, width: int = 1280, height: int = 720, delay: int = 0, dark_mode: bool = False) -> bytes | None:
+    async def take_screenshot(self, url: str, full_page: bool = False, width: int = 1280, height: int = 720, delay: int = 0, dark_mode: bool = False, cookies: list[dict] | None = None, country: str | None = None) -> bytes | None:
         retries = 3
         for attempt in range(retries):
-            proxy = await proxy_manager.get_proxy()
+            proxy = await proxy_manager.get_proxy(country=country)
             try:
                 async with async_playwright() as p:
                     browser = await p.chromium.launch(**self._get_launch_options(proxy))
@@ -67,6 +73,9 @@ class HeadlessFetcher:
                         color_scheme=color_scheme,
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                     )
+                    
+                    if cookies:
+                        await context.add_cookies(cookies)
                     
                     page = await context.new_page()
                     

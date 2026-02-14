@@ -1,11 +1,10 @@
 import time
 from urllib.parse import urlparse
-from fastapi import APIRouter, Depends, BackgroundTasks, Request, HTTPException
-from app.schemas.metadata import ExtractRequest, ExtractResponse, Metadata, MetaInfo
-from app.services.cache import cache_service
-from app.services.fetcher import fetcher_service
-from app.services.parser import parser_service
-from app.api.dependencies import limiter, verify_secret_header
+from fastapi import APIRouter, Depends, Request, HTTPException
+from app.schemas.metadata import ExtractRequest, ExtractResponse
+from app.services.extract import ExtractService
+from app.api.dependencies import limiter, verify_api_key, get_extract_service
+from app.utils.logger import logger
 from app.utils.logger import logger
 
 router = APIRouter()
