@@ -14,6 +14,14 @@ Built with **FastAPI**, **Playwright**, and **Redis**.
     -   **SSRF Protection**: Validators to prevent internal network scanning.
     -   **Rate Limiting**: Built-in rate limiting using `slowapi`.
     -   **API Key Auth**: Validates requests via `X-RapidAPI-Proxy-Secret`.
+-   **Anti-Blocking**:
+    -   **Proxy Rotation**: Automatically rotates free proxies (or uses your paid proxy) to avoid IP bans.
+    -   **Geo-Targeting**: Supports `country` parameter for region-specific scraping (requires paid proxy).
+    -   **Cookies**: Supports passing session cookies for authenticated scraping.
+-   **Developer Experience**:
+    -   **Batch Processing**: Process up to 50 URLs in parallel.
+    -   **Image Proxy**: Securely resize and cache external images (WebP format).
+    -   **Screenshots**: Capture full-page or viewport screenshots.
 
 ## 🛠️ Tech Stack
 
@@ -59,6 +67,8 @@ Built with **FastAPI**, **Playwright**, and **Redis**.
     REDIS_URL="redis://localhost:6379/0"
     SECRET_KEY="your-secret-key"
     X_RAPIDAPI_PROXY_SECRET="your-rapidapi-secret"
+    X_RAPIDAPI_PROXY_SECRET="your-rapidapi-secret"
+    PROXY_URL="" # Optional: "http://user:pass@host:port" (Leave empty for free proxy rotation)
     LOG_LEVEL="INFO"
     ```
 
@@ -105,22 +115,64 @@ docker-compose up --build
 
 ## 📚 API Reference
 
+## 📚 API Reference
+
+### 1. Extract Metadata
 **POST** `/v1/extract`
+
+Extracts metadata from a single URL.
+
+**Body**:
+```json
+{
+  "url": "https://netflix.com/title/80057281",
+  "enable_javascript": false,
+  "force_refresh": false,
+  "country": "US",          // Optional: Geo-target (requires paid proxy)
+  "cookies": {              // Optional: Authenticated scraping
+    "netflixId": "v=2&ct=..."
+  }
+}
+```
+
+### 2. Batch Extraction
+**POST** `/v1/batch/extract`
+
+Process up to 50 URLs in parallel.
+
+**Body**:
+```json
+{
+  "urls": ["https://google.com", "https://apple.com"],
+  "enable_javascript": false
+}
+```
+
+### 3. Image Proxy
+**GET** `/v1/image`
+
+Securely proxies, resizes, and caches images.
+
+**Query Parameters**:
+- `url`: The image URL (required).
+- `width`: Target width (optional, e.g., `200`).
+- `height`: Target height (optional).
+
+**Example**:
+`GET /v1/image?url=https://example.com/logo.png&width=300`
+
+### 4. Take Screenshot
+**POST** `/v1/screenshot`
+
+Captures a screenshot of the page.
 
 **Body**:
 ```json
 {
   "url": "https://example.com",
-  "enable_javascript": false,
-  "force_refresh": false
-}
-```
-
-**Response**:
-```json
-{
-  "meta": { "url": "...", "latency_ms": 120 },
-  "data": { "title": "Example", "image": "..." }
+  "full_page": false,
+  "dark_mode": true,
+  "delay": 2000
 }
 ```
 
