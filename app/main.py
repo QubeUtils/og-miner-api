@@ -16,6 +16,10 @@ async def lifespan(app: FastAPI):
     # Startup
     setup_logging()
     logger.info("startup")
+    
+    if settings.X_RAPIDAPI_PROXY_SECRET == "MISSING_SECRET":
+        logger.error("startup_error", "X_RAPIDAPI_PROXY_SECRET is not set! Authentication will fail or be insecure.")
+        
     yield
     # Shutdown
     await cache_service.close()
