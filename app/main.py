@@ -40,7 +40,6 @@ app = FastAPI(
     version=settings.VERSION,
     description=settings.DESCRIPTION,
     contact=settings.CONTACT,
-    license_info=settings.LICENSE_INFO,
     lifespan=lifespan
 )
 
