@@ -10,7 +10,7 @@ from app.utils.logger import logger
 
 router = APIRouter()
 
-@router.post("/batch/extract", response_model=BatchExtractResponse)
+@router.post("/batch/extract", response_model=BatchExtractResponse, operation_id="batch_extract", summary="Batch Extraction")
 async def process_batch(
     request: BatchExtractRequest,
     background_tasks: BackgroundTasks,

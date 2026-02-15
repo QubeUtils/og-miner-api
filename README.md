@@ -103,7 +103,6 @@ og-miner-api/
     REDIS_URL="redis://localhost:6379/0"
     SECRET_KEY="your-secret-key"
     X_RAPIDAPI_PROXY_SECRET="your-rapidapi-secret"
-    X_RAPIDAPI_PROXY_SECRET="your-rapidapi-secret"
     PROXY_URL="" # Optional: "http://user:pass@host:port" (Leave empty for free proxy rotation)
     LOG_LEVEL="INFO"
     ```

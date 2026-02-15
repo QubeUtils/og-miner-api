@@ -7,6 +7,15 @@ class BatchExtractRequest(BaseModel):
     enable_javascript: bool = Field(False, description="Use headless browser for all URLs.")
     force_refresh: bool = Field(False, description="Bypass cache for all URLs.")
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "urls": ["https://google.com", "https://apple.com"],
+                "enable_javascript": False
+            }
+        }
+    }
+
 class BatchExtractResponse(BaseModel):
     results: dict[str, ExtractResponse | dict] = Field(..., description="Map of URL to extraction result or error.")
     total: int

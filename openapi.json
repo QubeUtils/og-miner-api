@@ -10,29 +10,13 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/": {
-      "get": {
-        "summary": "Root",
-        "operationId": "root__get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/extract": {
       "post": {
         "tags": [
           "extract"
         ],
         "summary": "Extract Metadata",
-        "operationId": "extract_metadata_v1_extract_post",
+        "operationId": "extract_metadata",
         "requestBody": {
           "content": {
             "application/json": {
@@ -72,16 +56,233 @@
         ]
       }
     },
-    "/health": {
+    "/v1/screenshot": {
       "get": {
-        "summary": "Health Check",
-        "operationId": "health_check_health_get",
+        "tags": [
+          "screenshot"
+        ],
+        "summary": "Take Screenshot",
+        "description": "Capture a screenshot of a website.\nReturns a PNG image directly.",
+        "operationId": "take_screenshot",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 2083,
+              "title": "Url"
+            }
+          },
+          {
+            "name": "full_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Full Page"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3840,
+              "minimum": 320,
+              "default": 1280,
+              "title": "Width"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2160,
+              "minimum": 240,
+              "default": 720,
+              "title": "Height"
+            }
+          },
+          {
+            "name": "delay",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Delay"
+            }
+          },
+          {
+            "name": "dark_mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Dark Mode"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/batch/extract": {
+      "post": {
+        "tags": [
+          "batch"
+        ],
+        "summary": "Batch Extraction",
+        "description": "Extract metadata for multiple URLs in parallel.",
+        "operationId": "batch_extract",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchExtractResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/image": {
+      "get": {
+        "tags": [
+          "image"
+        ],
+        "summary": "Image Proxy",
+        "description": "Proxies and optionally resizes an image. \nResults are cached for performance.\nReturns WebP format by default.",
+        "operationId": "image_proxy",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The URL of the image to proxy",
+              "title": "Url"
+            },
+            "description": "The URL of the image to proxy"
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2000,
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Target width",
+              "title": "Width"
+            },
+            "description": "Target width"
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2000,
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Target height",
+              "title": "Height"
+            },
+            "description": "Target height"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -91,6 +292,87 @@
   },
   "components": {
     "schemas": {
+      "BatchExtractRequest": {
+        "properties": {
+          "urls": {
+            "items": {
+              "type": "string",
+              "maxLength": 2083,
+              "minLength": 1,
+              "format": "uri"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Urls",
+            "description": "List of URLs to extract metadata from (max 50)."
+          },
+          "enable_javascript": {
+            "type": "boolean",
+            "title": "Enable Javascript",
+            "description": "Use headless browser for all URLs.",
+            "default": false
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "title": "Force Refresh",
+            "description": "Bypass cache for all URLs.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "urls"
+        ],
+        "title": "BatchExtractRequest",
+        "example": {
+          "enable_javascript": false,
+          "urls": [
+            "https://google.com",
+            "https://apple.com"
+          ]
+        }
+      },
+      "BatchExtractResponse": {
+        "properties": {
+          "results": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ExtractResponse"
+                },
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Results",
+            "description": "Map of URL to extraction result or error."
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "successful": {
+            "type": "integer",
+            "title": "Successful"
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results",
+          "total",
+          "successful",
+          "failed"
+        ],
+        "title": "BatchExtractResponse"
+      },
       "ExtractRequest": {
         "properties": {
           "url": {
@@ -109,13 +391,52 @@
             "type": "boolean",
             "title": "Enable Javascript",
             "default": false
+          },
+          "proxy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies"
           }
         },
         "type": "object",
         "required": [
           "url"
         ],
-        "title": "ExtractRequest"
+        "title": "ExtractRequest",
+        "example": {
+          "country": "US",
+          "enable_javascript": false,
+          "url": "https://github.com"
+        }
       },
       "ExtractResponse": {
         "properties": {
@@ -317,7 +638,6 @@
     "securitySchemes": {
       "APIKeyHeader": {
         "type": "apiKey",
-        "description": "Secret key to verify requests coming from RapidAPI (or direct access if you have the secret).",
         "in": "header",
         "name": "X-RapidAPI-Proxy-Secret"
       }

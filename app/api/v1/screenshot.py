@@ -9,7 +9,7 @@ from typing import Annotated
 
 router = APIRouter()
 
-@router.get("/screenshot", dependencies=[Depends(verify_api_key)])
+@router.get("/screenshot", dependencies=[Depends(verify_api_key)], operation_id="take_screenshot", summary="Take Screenshot")
 @limiter.limit("5/minute")
 async def get_screenshot(
     request: Request,

@@ -51,7 +51,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Routers
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def root():
     return {"message": "Welcome to OG Miner API", "docs": "/docs"}
 
@@ -61,7 +61,7 @@ app.include_router(batch.router, prefix="/v1", tags=["batch"])
 app.include_router(image.router, prefix="/v1", tags=["image"])
 
 # Health Check
-@app.get("/health")
+@app.get("/health", include_in_schema=False)
 async def health_check():
     redis_status = await cache_service.ping()
     return {

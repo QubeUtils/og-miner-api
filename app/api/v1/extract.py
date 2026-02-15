@@ -9,7 +9,7 @@ from app.utils.logger import logger
 
 router = APIRouter()
 
-@router.post("/extract", response_model=ExtractResponse)
+@router.post("/extract", response_model=ExtractResponse, operation_id="extract_metadata", summary="Extract Metadata")
 @limiter.limit("60/minute")
 async def extract_metadata(
     request: Request, 

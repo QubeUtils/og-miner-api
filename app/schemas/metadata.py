@@ -7,6 +7,16 @@ class ExtractRequest(BaseModel):
     proxy: str | None = None
     country: str | None = None
     cookies: dict | None = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "url": "https://github.com",
+                "enable_javascript": False,
+                "country": "US"
+            }
+        }
+    }
 
 class Metadata(BaseModel):
     title: str | None = None
