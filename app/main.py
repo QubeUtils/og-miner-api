@@ -6,17 +6,33 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.utils.logger import setup_logging, logger
-from app.api.v1 import extract
+from app.api.v1 import extract, screenshot, batch, image
 from app.api.dependencies import limiter
 from app.services.cache import cache_service
 from app.services.fetcher import fetcher_service
 
+from app.services.proxy_manager import proxy_manager
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    setup_logging()
-    logger.info("startup")
-    yield
+    try:
+        setup_logging()
+        logger.info("startup")
+        await proxy_manager.initialize()
+        
+        if settings.X_RAPIDAPI_PROXY_SECRET == "MISSING_SECRET":
+            logger.error("startup_error", message="X_RAPIDAPI_PROXY_SECRET is not set! Authentication will fail or be insecure.")
+            
+        yield
+    except Exception as e:
+        # Fallback logging if structlog fails or other startup error
+        import sys
+        print(f"CRITICAL STARTUP ERROR: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        raise e
+        
     # Shutdown
     await cache_service.close()
     await fetcher_service.close()
@@ -25,6 +41,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
+    description=settings.DESCRIPTION,
+    contact=settings.CONTACT,
     lifespan=lifespan
 )
 
@@ -38,6 +56,9 @@ async def root():
     return {"message": "Welcome to OG Miner API", "docs": "/docs"}
 
 app.include_router(extract.router, prefix="/v1", tags=["extract"])
+app.include_router(screenshot.router, prefix="/v1", tags=["screenshot"])
+app.include_router(batch.router, prefix="/v1", tags=["batch"])
+app.include_router(image.router, prefix="/v1", tags=["image"])
 
 # Health Check
 @app.get("/health")

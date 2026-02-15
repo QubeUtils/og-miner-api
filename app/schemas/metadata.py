@@ -4,6 +4,9 @@ class ExtractRequest(BaseModel):
     url: HttpUrl
     force_refresh: bool = False
     enable_javascript: bool = False
+    proxy: str | None = None
+    country: str | None = None
+    cookies: dict | None = None
 
 class Metadata(BaseModel):
     title: str | None = None
