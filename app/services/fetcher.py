@@ -1,4 +1,8 @@
+import httpx
+from fake_useragent import UserAgent
 from app.services.proxy_manager import proxy_manager
+from app.core.security import validate_url
+from app.utils.logger import logger
 
 class FetcherService:
     def __init__(self):
@@ -14,17 +18,24 @@ class FetcherService:
             verify=False
         )
 
-    async def fetch(self, url: str, cookies: dict | None = None, country: str | None = None) -> str:
+    async def fetch(self, url: str, cookies: dict | None = None, country: str | None = None, user_proxy: str | None = None) -> str:
         # Validate SSRF
         validate_url(url)
         
         headers = { "User-Agent": self.ua.random }
         
+        # If user provides a proxy, we don't retry with *our* rotation.
+        # We try 3 times with *their* proxy in case of transient network issues, 
+        # but we don't switch proxies.
         retries = 3
         last_error = None
         
         for attempt in range(retries):
-            proxy = await proxy_manager.get_proxy(country=country)
+            # Decide which proxy to use
+            if user_proxy:
+                proxy = user_proxy
+            else:
+                proxy = await proxy_manager.get_proxy(country=country)
             
             # Create a client for this request (needed to set specific proxy)
             # If no proxy, use default_client (but we can't reuse default_client easily if we want different proxies per req)
@@ -37,11 +48,17 @@ class FetcherService:
                 else:
                     return await self._perform_fetch(self.default_client, url, headers)
                     
-            except (httpx.ConnectError, httpx.ReadTimeout, httpx.ConnectTimeout) as e:
+            except (httpx.ConnectError, httpx.ReadTimeout, httpx.ConnectTimeout, httpx.ProxyError) as e:
                 last_error = e
-                if proxy:
+                # Only mark bad if it's OUR proxy
+                if proxy and not user_proxy:
                     await proxy_manager.mark_bad(proxy)
-                logger.warning("fetch_retry", url=url, attempt=attempt+1, error=str(e), proxy=proxy)
+                
+                logger.warning("fetch_retry", url=url, attempt=attempt+1, error=str(e), proxy=proxy, is_user_proxy=bool(user_proxy))
+                
+                # If user proxy fails, we might still retry in case it's a momentary blip, 
+                # but usually if a user proxy is dead, it's dead.
+                # However, standard retry logic is fine.
                 continue
             except Exception as e:
                 # Non-retryable or other errors

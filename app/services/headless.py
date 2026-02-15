@@ -13,14 +13,19 @@ class HeadlessFetcher:
             options["proxy"] = {"server": proxy_url}
         return options
 
-    async def fetch_and_render(self, url: str, cookies: list[dict] | None = None, country: str | None = None) -> str | None:
+    async def fetch_and_render(self, url: str, cookies: list[dict] | None = None, country: str | None = None, user_proxy: str | None = None) -> str | None:
         """
         Launches a headless browser... with retries for proxies.
         Cookies format for Playwright: [{'name': 'foo', 'value': 'bar', 'url': '...'}]
         """
         retries = 3
         for attempt in range(retries):
-            proxy = await proxy_manager.get_proxy(country=country)
+            # Select proxy
+            if user_proxy:
+                proxy = user_proxy
+            else:
+                proxy = await proxy_manager.get_proxy(country=country)
+
             try:
                 async with async_playwright() as p:
                     browser = await p.chromium.launch(**self._get_launch_options(proxy))
@@ -52,8 +57,8 @@ class HeadlessFetcher:
                         raise e # Re-raise to trigger retry loop
                         
             except Exception as e:
-                logger.warning("headless_retry", url=url, attempt=attempt+1, error=str(e), proxy=proxy)
-                if proxy:
+                logger.warning("headless_retry", url=url, attempt=attempt+1, error=str(e), proxy=proxy, is_user_proxy=bool(user_proxy))
+                if proxy and not user_proxy:
                     await proxy_manager.mark_bad(proxy)
                 continue
         

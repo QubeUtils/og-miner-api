@@ -4,6 +4,12 @@ from PIL import Image
 from app.services.proxy_manager import proxy_manager
 from app.utils.logger import logger
 
+from pydantic import BaseModel
+
+class ResizeParams(BaseModel):
+    width: int | None = None
+    height: int | None = None
+
 class ImageProxyService:
     async def fetch_image(self, url: str) -> bytes | None:
         """

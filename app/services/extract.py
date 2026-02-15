@@ -3,6 +3,8 @@ from urllib.parse import urlparse
 from app.schemas.metadata import ExtractRequest, ExtractResponse, Metadata, MetaInfo
 from app.utils.logger import logger
 
+from app.core.security import validate_proxy_url
+
 class ExtractService:
     def __init__(self, cache_service, fetcher_service, parser_service, headless_service):
         self.cache = cache_service
@@ -14,6 +16,12 @@ class ExtractService:
         start_time = time.time()
         url_str = str(request.url)
         domain = urlparse(url_str).netloc
+        
+        # User Proxy Logic
+        user_proxy = None
+        if request.proxy:
+            user_proxy = str(request.proxy)
+            validate_proxy_url(user_proxy) # Security check
         
         # Check cache
         if not request.force_refresh:
@@ -40,7 +48,7 @@ class ExtractService:
                         pw_cookies.append({"name": k, "value": v, "url": url_str})
 
                 # Note: This might be slow. Client should be aware (timeout increased?)
-                html_content = await self.headless.fetch_and_render(url_str, cookies=pw_cookies, country=request.country)
+                html_content = await self.headless.fetch_and_render(url_str, cookies=pw_cookies, country=request.country, user_proxy=user_proxy)
                 if html_content:
                     logger.info("headless_fetch_success", url=url_str)
                 else:
@@ -48,7 +56,7 @@ class ExtractService:
             
             # 2. Standard Fetch (Fallback or Default)
             if not html_content:
-                html_content = await self.fetcher.fetch(url_str, cookies=request.cookies, country=request.country)
+                html_content = await self.fetcher.fetch(url_str, cookies=request.cookies, country=request.country, user_proxy=user_proxy)
 
             metadata_dict = self.parser.parse(html_content, url_str)
             

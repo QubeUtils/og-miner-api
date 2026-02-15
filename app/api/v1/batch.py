@@ -11,7 +11,7 @@ from app.utils.logger import logger
 router = APIRouter()
 
 @router.post("/batch/extract", response_model=BatchExtractResponse)
-async def batch_extract_metadata(
+async def process_batch(
     request: BatchExtractRequest,
     background_tasks: BackgroundTasks,
     api_key: str = Depends(verify_api_key),

@@ -18,14 +18,14 @@ def mock_redis():
 
 @pytest.mark.asyncio
 async def test_fetch_timeout_handling():
-    with patch.object(fetcher_service.client, 'stream', side_effect=httpx.TimeoutException("Mock Timeout")):
+    with patch.object(fetcher_service.default_client, 'stream', side_effect=httpx.TimeoutException("Mock Timeout")):
         response = client.post("/v1/extract", json={"url": "https://timeout.com"}, headers=HEADERS)
         assert response.status_code == 504
         assert response.json()["detail"]["code"] == "timeout"
 
 @pytest.mark.asyncio
 async def test_fetch_connection_error_handling():
-    with patch.object(fetcher_service.client, 'stream', side_effect=httpx.ConnectError("Mock Connection Error")):
+    with patch.object(fetcher_service.default_client, 'stream', side_effect=httpx.ConnectError("Mock Connection Error")):
         response = client.post("/v1/extract", json={"url": "https://down.com"}, headers=HEADERS)
         assert response.status_code == 502
         assert response.json()["detail"]["code"] == "connection_error"
