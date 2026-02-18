@@ -214,6 +214,11 @@
         "summary": "Image Proxy",
         "description": "Proxies and optionally resizes an image. \nResults are cached for performance.\nReturns WebP format by default.",
         "operationId": "image_proxy",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
         "parameters": [
           {
             "name": "url",

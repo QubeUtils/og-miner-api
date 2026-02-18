@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, HTTPException, Query, Response, Depends
+from app.api.dependencies import verify_api_key
 import base64
 from typing import Optional
 
@@ -8,7 +9,7 @@ from app.utils.logger import logger
 
 router = APIRouter()
 
-@router.get("/image", operation_id="image_proxy", summary="Image Proxy")
+@router.get("/image", dependencies=[Depends(verify_api_key)], operation_id="image_proxy", summary="Image Proxy")
 async def proxy_image(
     url: str = Query(..., description="The URL of the image to proxy"),
     width: Optional[int] = Query(None, gt=0, le=2000, description="Target width"),

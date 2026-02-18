@@ -192,6 +192,9 @@ Securely proxies, resizes, and caches images.
 - `width`: Target width (optional, e.g., `200`).
 - `height`: Target height (optional).
 
+**Headers**:
+- `X-RapidAPI-Proxy-Secret`: Your secret key (required).
+
 **Example**:
 `GET /v1/image?url=https://example.com/logo.png&width=300`
 
